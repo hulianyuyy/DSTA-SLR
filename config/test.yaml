@@ -1,0 +1,68 @@
+Experiment_name: slr500_bone_motion
+
+# feeder
+dataset: SLR500 # [WLASL100, WLASL300, WLASL1000, WLASL2000, SLR500, AUTSL, WLASL300_mediapipe, WLASL100_mediapipe]
+feeder: feeders.feeder.Feeder
+train_feeder_args:
+  debug: False
+  random_choose: True
+  window_size: 120  # 100 for AUTSL, 120 for others
+  random_shift: True
+  normalization: True
+  random_mirror: True
+  random_mirror_p: 0.5
+  is_vector: False
+  lap_pe: False
+  bone_stream: True # True or False
+  motion_stream: True # True or False
+
+test_feeder_args:
+  random_mirror: False
+  normalization: True
+  lap_pe: False
+  debug: False
+  random_choose: True
+  window_size: 120  # 100 for AUTSL, 120 for others
+  bone_stream: True # True or False
+  motion_stream: True # True or False
+
+# model
+model: model.fstgan.Model
+model_args:
+  num_class: 500   # 100 for WLASL100, 300 for WLASL300, 1000 for WLASL1000, 2000 for WLASL2000, 226 for AUTSL, 500 for SLR500
+  num_point: 27
+  num_person: 1
+  graph: graph.sign_27.Graph
+  groups: 16
+  block_size: 41
+  graph_args:
+    labeling_mode: 'spatial'
+  inner_dim: 64
+  depth: 4
+  drop_layers: 2
+
+#optim
+weight_decay: 0.0001
+base_lr: 0.1
+step: [150, 200]
+
+# training
+device: [0]
+phase: test
+weights: ./path_to_your_model/model.pt
+start_epoch: 188
+keep_rate: 0.9
+only_train_epoch: 1
+batch_size: 24
+test_batch_size: 24
+num_epoch: 250
+nesterov: True
+warm_up_epoch: 20
+
+wandb: False
+wandb_project: SLGTformer First Run
+wandb_entity: irvl
+wandb_name: Twin Attention, No Shift, 24BS
+
+num_worker: 4
+save_interval: 5

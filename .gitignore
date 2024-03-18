@@ -1,0 +1,8 @@
+save_models/*
+work_dir/*
+wandb/*
+.vscode
+data/*
+**__pycache__
+**.log
+**sota**
