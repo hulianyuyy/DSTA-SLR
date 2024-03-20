@@ -1,4 +1,4 @@
-# Dynamic Spatial-Temporal Aggregation for Skeleton-Aware Sign Language Recognition
+# [Dynamic Spatial-Temporal Aggregation for Skeleton-Aware Sign Language Recognition](https://arxiv.org/pdf/2403.12519.pdf)
 This work focuses on skeleton-aware sign language recognition (SLR) which receives a series of skeleton points to classify the classes of sign language. Compared to RGB-based inputs, it consumes <1/3 computations and achieve >2× inference speed. This work proposes a dynamic spatial-temporal aggregation network for skeleton-aware sign language recognition. It achieves new state-of-the-art performance on four datasets including NMFs-CSL, SLR500, MSASL and WLASL and outperforms previous methods by a large margin.
 ## Data preparation
 The preprocessed skeleton data for NMFs-CSL, SLR500, MSASL and WLASL datasets are provided [here](https://mega.nz/folder/JytAARrA#76Ug-Khu-8Eskmrw1HhMCQ). Please be sure to follow their rules and agreements when using the preprocessed data.
