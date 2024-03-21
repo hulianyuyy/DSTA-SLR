@@ -30,4 +30,4 @@ To test your model with pretrained weights, you may modify the line 52 in [./con
 
 ## Acknowledgements
 
-This code is based on [SAM-SLR-v2](https://github.com/jackyjsy/SAM-SLR-v2) and SLGTformer(https://github.com/neilsong/SLGTformer). Many thanks for the authors for open sourcing their code.
+This code is based on [SAM-SLR-v2](https://github.com/jackyjsy/SAM-SLR-v2) and [SLGTformer](https://github.com/neilsong/SLGTformer). Many thanks for the authors for open sourcing their code.
