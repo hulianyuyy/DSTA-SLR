@@ -1,7 +1,7 @@
 Experiment_name: slr500_bone_motion
 
 # feeder
-dataset: WLASL100 # [WLASL100, WLASL300, WLASL1000, WLASL2000, SLR500, AUTSL, WLASL300_mediapipe, WLASL100_mediapipe]
+dataset: SLR500 # [WLASL100, WLASL300, WLASL1000, WLASL2000, SLR500, AUTSL, WLASL300_mediapipe, WLASL100_mediapipe]
 feeder: feeders.feeder.Feeder
 train_feeder_args:
   debug: False
@@ -29,7 +29,7 @@ test_feeder_args:
 # model
 model: model.fstgan.Model
 model_args:
-  num_class: 100   # 100 for WLASL100, 300 for WLASL300, 1000 for WLASL1000, 2000 for WLASL2000, 226 for AUTSL, 500 for SLR500
+  num_class: 500   # 100 for WLASL100, 300 for WLASL300, 1000 for WLASL1000, 2000 for WLASL2000, 226 for AUTSL, 500 for SLR500
   num_point: 27
   num_person: 1
   graph: graph.sign_27.Graph
@@ -49,7 +49,7 @@ step: [150, 200]
 # training
 device: [0]
 phase: test
-weights: pretrained_models/pretrained_model_for_WLASL2000.pt
+weights: ./path_to_your_model/model.pt
 start_epoch: 188
 keep_rate: 0.9
 only_train_epoch: 1
