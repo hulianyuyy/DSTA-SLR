@@ -538,21 +538,21 @@ class Processor:
                 step = 0
                 process = tqdm(self.data_loader[ln])
                 test_acc = torchmetrics.Accuracy(
-                    task='multiclass',
+                    task="multiclass",
                     num_classes=self.arg.model_args["num_class"],
                 ).to(self.output_device)
                 test_recall = torchmetrics.Recall(
-                    task='multiclass',
+                    task="multiclass",
                     average="none",
                     num_classes=self.arg.model_args["num_class"],
                 ).to(self.output_device)
                 test_precision = torchmetrics.Precision(
-                    task='multiclass',
+                    task="multiclass",
                     average="none",
                     num_classes=self.arg.model_args["num_class"],
                 ).to(self.output_device)
                 test_auc = torchmetrics.AUROC(
-                    task='multiclass',
+                    task="multiclass",
                     average="macro",
                     num_classes=self.arg.model_args["num_class"],
                 ).to(self.output_device)
@@ -651,10 +651,8 @@ class Processor:
                     )
                 )
                 self.print_log(f"torch metrics acc: {(100 * total_acc):>0.1f}%\n")
-                self.print_log("recall of every test dataset class: ", total_recall)
-                self.print_log(
-                    "precision of every test dataset class: ", total_precision
-                )
+                self.print_log(f"recall of every test dataset class:\n{total_recall}")
+                self.print_log(f"precision of every test dataset class:\n{total_precision}")
                 self.print_log(
                     f"f1 score: {2*total_recall*total_precision/(total_recall+total_precision)}"
                 )
