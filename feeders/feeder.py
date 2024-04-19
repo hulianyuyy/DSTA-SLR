@@ -320,13 +320,15 @@ class Feeder(Dataset):
 
     def per_class_acc_top_k(self, score, top_k):
         rank = score.argsort()
-        hit_top_k = [l in rank[i, -top_k:] for i, l in enumerate(self.label)]
+        hit_top_k = [
+            l in rank[i, -top_k:] for i, l in enumerate(self.label)
+        ]
         acc = [0 for c in range(self.num_class)]
         for c in range(self.num_class):
             hit_label = [l == c for l in self.label]
             acc[c] = np.sum(
-                np.array(hit_top_k).astype(np.float)
-                * np.array(hit_label).astype(np.float)
+                np.array(hit_top_k).astype(np.float32)
+                * np.array(hit_label).astype(np.float32)
             ) / self.label.count(c)
         return np.mean(acc)
 
