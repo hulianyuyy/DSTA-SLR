@@ -17,18 +17,18 @@ class DropBlock_Ske(nn.Module):
             return input
         n, c, t, v = input.size()
 
-        input_abs = torch.mean(torch.mean(
-            torch.abs(input), dim=2), dim=1).detach()
+        input_abs = torch.mean(torch.mean(torch.abs(input), dim=2), dim=1).detach()
         input_abs = input_abs / torch.sum(input_abs) * input_abs.numel()
         if self.num_point == 25:  # Kinect V2
-            gamma = (1. - self.keep_prob) / (1 + 1.92)
+            gamma = (1.0 - self.keep_prob) / (1 + 1.92)
         elif self.num_point == 20:  # Kinect V1
-            gamma = (1. - self.keep_prob) / (1 + 1.9)
+            gamma = (1.0 - self.keep_prob) / (1 + 1.9)
         else:
-            gamma = (1. - self.keep_prob) / (1 + 1.92)
-            warnings.warn('undefined skeleton graph')
-        M_seed = torch.bernoulli(torch.clamp(
-            input_abs * gamma, max=1.0)).to(device=input.device, dtype=input.dtype)
+            gamma = (1.0 - self.keep_prob) / (1 + 1.92)
+            warnings.warn("undefined skeleton graph")
+        M_seed = torch.bernoulli(torch.clamp(input_abs * gamma, max=1.0)).to(
+            device=input.device, dtype=input.dtype
+        )
         M = torch.matmul(M_seed, A)
         M[M > 0.001] = 1.0
         M[M < 0.5] = 0.0
