@@ -3,12 +3,19 @@ from copy import deepcopy
 import numpy as np
 import torch
 import torch.nn.functional as F
-from torch_geometric.utils import (get_laplacian, to_scipy_sparse_matrix,
-                                   to_undirected, to_dense_adj)
+from torch_geometric.utils import (
+    get_laplacian,
+    to_scipy_sparse_matrix,
+    to_undirected,
+    to_dense_adj,
+)
 from torch_geometric.utils.num_nodes import maybe_num_nodes
 from torch_scatter import scatter_add
 
-def compute_posenc_stats(data, pe_types, is_undirected, laplacian_norm_type, max_freqs, eigvec_norm):
+
+def compute_posenc_stats(
+    data, pe_types, is_undirected, laplacian_norm_type, max_freqs, eigvec_norm
+):
     """Precompute positional encodings for the given graph.
 
     Supported PE statistics to precompute, selected by `pe_types`:
@@ -30,15 +37,23 @@ def compute_posenc_stats(data, pe_types, is_undirected, laplacian_norm_type, max
     """
     # Verify PE types.
     for t in pe_types:
-        if t not in ['LapPE', 'EquivStableLapPE', 'SignNet', 'RWSE', 'HKdiagSE', 'HKfullPE', 'ElstaticSE']:
+        if t not in [
+            "LapPE",
+            "EquivStableLapPE",
+            "SignNet",
+            "RWSE",
+            "HKdiagSE",
+            "HKfullPE",
+            "ElstaticSE",
+        ]:
             raise ValueError(f"Unexpected PE stats selection {t} in {pe_types}")
 
     # Basic preprocessing of the input graph.
-    if hasattr(data, 'num_nodes'):
+    if hasattr(data, "num_nodes"):
         N = data.num_nodes  # Explicitly given number of nodes, e.g. ogbg-ppa
     else:
         N = data.x.shape[0]  # Number of nodes, including disconnected nodes.
-    if laplacian_norm_type == 'none':
+    if laplacian_norm_type == "none":
         laplacian_norm_type = None
     if is_undirected:
         undir_edge_index = data.edge_index
@@ -48,21 +63,21 @@ def compute_posenc_stats(data, pe_types, is_undirected, laplacian_norm_type, max
 
     # Eigen values and vectors.
     evals, evects = None, None
-    if 'LapPE' in pe_types or 'EquivStableLapPE' in pe_types:
+    if "LapPE" in pe_types or "EquivStableLapPE" in pe_types:
         # Eigen-decomposition with numpy, can be reused for Heat kernels.
         L = to_scipy_sparse_matrix(
-            *get_laplacian(undir_edge_index, normalization=laplacian_norm_type,
-                           num_nodes=N)
+            *get_laplacian(
+                undir_edge_index, normalization=laplacian_norm_type, num_nodes=N
+            )
         )
         evals, evects = np.linalg.eigh(L.toarray())
 
     return get_lap_decomp_stats(
-            evals=evals, evects=evects,
-            max_freqs=max_freqs,
-            eigvec_norm=eigvec_norm)
+        evals=evals, evects=evects, max_freqs=max_freqs, eigvec_norm=eigvec_norm
+    )
 
 
-def get_lap_decomp_stats(evals, evects, max_freqs, eigvec_norm='L2'):
+def get_lap_decomp_stats(evals, evects, max_freqs, eigvec_norm="L2"):
     """Compute Laplacian eigen-decomposition-based PE stats of the given graph.
 
     Args:
@@ -84,13 +99,13 @@ def get_lap_decomp_stats(evals, evects, max_freqs, eigvec_norm='L2'):
     evects = torch.from_numpy(evects).float()
     evects = eigvec_normalizer(evects, evals, normalization=eigvec_norm)
     if N < max_freqs:
-        EigVecs = F.pad(evects, (0, max_freqs - N), value=float('nan'))
+        EigVecs = F.pad(evects, (0, max_freqs - N), value=float("nan"))
     else:
         EigVecs = evects
 
     # Pad and save eigenvalues.
     if N < max_freqs:
-        EigVals = F.pad(evals, (0, max_freqs - N), value=float('nan')).unsqueeze(0)
+        EigVals = F.pad(evals, (0, max_freqs - N), value=float("nan")).unsqueeze(0)
     else:
         EigVals = evals.unsqueeze(0)
     EigVals = EigVals.repeat(N, 1).unsqueeze(2)
@@ -98,8 +113,9 @@ def get_lap_decomp_stats(evals, evects, max_freqs, eigvec_norm='L2'):
     return EigVals, EigVecs
 
 
-def get_rw_landing_probs(ksteps, edge_index, edge_weight=None,
-                         num_nodes=None, space_dim=0):
+def get_rw_landing_probs(
+    ksteps, edge_index, edge_weight=None, num_nodes=None, space_dim=0
+):
     """Compute Random Walk landing probabilities for given list of K steps.
 
     Args:
@@ -121,27 +137,30 @@ def get_rw_landing_probs(ksteps, edge_index, edge_weight=None,
     num_nodes = maybe_num_nodes(edge_index, num_nodes)
     source, dest = edge_index[0], edge_index[1]
     deg = scatter_add(edge_weight, source, dim=0, dim_size=num_nodes)  # Out degrees.
-    deg_inv = deg.pow(-1.)
-    deg_inv.masked_fill_(deg_inv == float('inf'), 0)
+    deg_inv = deg.pow(-1.0)
+    deg_inv.masked_fill_(deg_inv == float("inf"), 0)
 
     if edge_index.numel() == 0:
         P = edge_index.new_zeros((1, num_nodes, num_nodes))
     else:
         # P = D^-1 * A
-        P = torch.diag(deg_inv) @ to_dense_adj(edge_index, max_num_nodes=num_nodes)  # 1 x (Num nodes) x (Num nodes)
+        P = torch.diag(deg_inv) @ to_dense_adj(
+            edge_index, max_num_nodes=num_nodes
+        )  # 1 x (Num nodes) x (Num nodes)
     rws = []
     if ksteps == list(range(min(ksteps), max(ksteps) + 1)):
         # Efficient way if ksteps are a consecutive sequence (most of the time the case)
         Pk = P.clone().detach().matrix_power(min(ksteps))
         for k in range(min(ksteps), max(ksteps) + 1):
-            rws.append(torch.diagonal(Pk, dim1=-2, dim2=-1) * \
-                       (k ** (space_dim / 2)))
+            rws.append(torch.diagonal(Pk, dim1=-2, dim2=-1) * (k ** (space_dim / 2)))
             Pk = Pk @ P
     else:
         # Explicitly raising P to power k for each k \in ksteps.
         for k in ksteps:
-            rws.append(torch.diagonal(P.matrix_power(k), dim1=-2, dim2=-1) * \
-                       (k ** (space_dim / 2)))
+            rws.append(
+                torch.diagonal(P.matrix_power(k), dim1=-2, dim2=-1)
+                * (k ** (space_dim / 2))
+            )
     rw_landing = torch.cat(rws, dim=0).transpose(0, 1)  # (Num nodes) x (K steps)
 
     return rw_landing
@@ -170,7 +189,7 @@ def get_heat_kernels_diag(evects, evals, kernel_times=[], space_dim=0):
     """
     heat_kernels_diag = []
     if len(kernel_times) > 0:
-        evects = F.normalize(evects, p=2., dim=0)
+        evects = F.normalize(evects, p=2.0, dim=0)
 
         # Remove eigenvalues == 0 from the computation of the heat kernel
         idx_remove = evals < 1e-8
@@ -182,11 +201,12 @@ def get_heat_kernels_diag(evects, evals, kernel_times=[], space_dim=0):
         evects = evects.transpose(0, 1)  # phi_{i,j}: i-th eigvec X j-th node
 
         # Compute the heat kernels diagonal only for each time
-        eigvec_mul = evects ** 2
+        eigvec_mul = evects**2
         for t in kernel_times:
             # sum_{i>0}(exp(-2 t lambda_i) * phi_{i, j} * phi_{i, j})
-            this_kernel = torch.sum(torch.exp(-t * evals) * eigvec_mul,
-                                    dim=0, keepdim=False)
+            this_kernel = torch.sum(
+                torch.exp(-t * evals) * eigvec_mul, dim=0, keepdim=False
+            )
 
             # Multiply by `t` to stabilize the values, since the gaussian height
             # is proportional to `1/t`
@@ -207,7 +227,7 @@ def get_heat_kernels(evects, evals, kernel_times=[]):
     """
     heat_kernels, rw_landing = [], []
     if len(kernel_times) > 0:
-        evects = F.normalize(evects, p=2., dim=0)
+        evects = F.normalize(evects, p=2.0, dim=0)
 
         # Remove eigenvalues == 0 from the computation of the heat kernel
         idx_remove = evals < 1e-8
@@ -219,26 +239,30 @@ def get_heat_kernels(evects, evals, kernel_times=[]):
         evects = evects.transpose(0, 1)  # phi_{i,j}: i-th eigvec X j-th node
 
         # Compute the heat kernels for each time
-        eigvec_mul = (evects.unsqueeze(2) * evects.unsqueeze(1))  # (phi_{i, j1, ...} * phi_{i, ..., j2})
+        eigvec_mul = evects.unsqueeze(2) * evects.unsqueeze(
+            1
+        )  # (phi_{i, j1, ...} * phi_{i, ..., j2})
         for t in kernel_times:
             # sum_{i>0}(exp(-2 t lambda_i) * phi_{i, j1, ...} * phi_{i, ..., j2})
             heat_kernels.append(
-                torch.sum(torch.exp(-t * evals) * eigvec_mul,
-                          dim=0, keepdim=False)
+                torch.sum(torch.exp(-t * evals) * eigvec_mul, dim=0, keepdim=False)
             )
 
-        heat_kernels = torch.stack(heat_kernels, dim=0)  # (Num kernel times) x (Num nodes) x (Num nodes)
+        heat_kernels = torch.stack(
+            heat_kernels, dim=0
+        )  # (Num kernel times) x (Num nodes) x (Num nodes)
 
         # Take the diagonal of each heat kernel,
         # i.e. the landing probability of each of the random walks
-        rw_landing = torch.diagonal(heat_kernels, dim1=-2, dim2=-1).transpose(0, 1)  # (Num nodes) x (Num kernel times)
+        rw_landing = torch.diagonal(heat_kernels, dim1=-2, dim2=-1).transpose(
+            0, 1
+        )  # (Num nodes) x (Num kernel times)
 
     return heat_kernels, rw_landing
 
 
 def get_electrostatic_function_encoding(edge_index, num_nodes):
-    """Kernel based on the electrostatic interaction between nodes.
-    """
+    """Kernel based on the electrostatic interaction between nodes."""
     L = to_scipy_sparse_matrix(
         *get_laplacian(edge_index, normalization=None, num_nodes=num_nodes)
     ).todense()
@@ -250,18 +274,25 @@ def get_electrostatic_function_encoding(edge_index, num_nodes):
 
     electrostatic = torch.pinverse(L)
     electrostatic = electrostatic - electrostatic.diag()
-    green_encoding = torch.stack([
-        electrostatic.min(dim=0)[0],  # Min of Vi -> j
-        electrostatic.max(dim=0)[0],  # Max of Vi -> j
-        electrostatic.mean(dim=0),  # Mean of Vi -> j
-        electrostatic.std(dim=0),  # Std of Vi -> j
-        electrostatic.min(dim=1)[0],  # Min of Vj -> i
-        electrostatic.max(dim=0)[0],  # Max of Vj -> i
-        electrostatic.mean(dim=1),  # Mean of Vj -> i
-        electrostatic.std(dim=1),  # Std of Vj -> i
-        (DinvA * electrostatic).sum(dim=0),  # Mean of interaction on direct neighbour
-        (DinvA * electrostatic).sum(dim=1),  # Mean of interaction from direct neighbour
-    ], dim=1)
+    green_encoding = torch.stack(
+        [
+            electrostatic.min(dim=0)[0],  # Min of Vi -> j
+            electrostatic.max(dim=0)[0],  # Max of Vi -> j
+            electrostatic.mean(dim=0),  # Mean of Vi -> j
+            electrostatic.std(dim=0),  # Std of Vi -> j
+            electrostatic.min(dim=1)[0],  # Min of Vj -> i
+            electrostatic.max(dim=0)[0],  # Max of Vj -> i
+            electrostatic.mean(dim=1),  # Mean of Vj -> i
+            electrostatic.std(dim=1),  # Std of Vj -> i
+            (DinvA * electrostatic).sum(
+                dim=0
+            ),  # Mean of interaction on direct neighbour
+            (DinvA * electrostatic).sum(
+                dim=1
+            ),  # Mean of interaction from direct neighbour
+        ],
+        dim=1,
+    )
 
     return green_encoding
 
@@ -296,7 +327,11 @@ def eigvec_normalizer(EigVecs, EigVals, normalization="L2", eps=1e-12):
     elif normalization == "wavelength-asin":
         # AbsMax normalization, followed by arcsin and wavelength multiplication:
         # arcsin(eigvec / max|eigvec|)  /  sqrt(eigval)
-        denom_temp = torch.max(EigVecs.abs(), dim=0, keepdim=True).values.clamp_min(eps).expand_as(EigVecs)
+        denom_temp = (
+            torch.max(EigVecs.abs(), dim=0, keepdim=True)
+            .values.clamp_min(eps)
+            .expand_as(EigVecs)
+        )
         EigVecs = torch.asin(EigVecs / denom_temp)
         eigval_denom = torch.sqrt(EigVals)
         eigval_denom[EigVals < eps] = 1  # Problem with eigval = 0
@@ -305,7 +340,9 @@ def eigvec_normalizer(EigVecs, EigVals, normalization="L2", eps=1e-12):
     elif normalization == "wavelength-soft":
         # AbsSoftmax normalization, followed by wavelength multiplication:
         # eigvec / (softmax|eigvec| * sqrt(eigval))
-        denom = (F.softmax(EigVecs.abs(), dim=0) * EigVecs.abs()).sum(dim=0, keepdim=True)
+        denom = (F.softmax(EigVecs.abs(), dim=0) * EigVecs.abs()).sum(
+            dim=0, keepdim=True
+        )
         eigval_denom = torch.sqrt(EigVals)
         eigval_denom[EigVals < eps] = 1  # Problem with eigval = 0
         denom = denom * eigval_denom
