@@ -1,7 +1,7 @@
 Experiment_name: experiment
 
 # feeder
-dataset: WLASL2000 # [WLASL100, WLASL300, WLASL1000, WLASL2000, MLASL100, MLASL200, MLASL500, MLASL1000, SLR500, NMFs-CSL]
+dataset: WLASL100 # [WLASL100, WLASL300, WLASL1000, WLASL2000, MLASL100, MLASL200, MLASL500, MLASL1000, SLR500, NMFs-CSL]
 feeder: feeders.feeder.Feeder
 train_feeder_args:
   debug: False
@@ -29,7 +29,7 @@ test_feeder_args:
 # model
 model: model.fstgan.Model
 model_args:
-  num_class: 2000   # 100 for WLASL100, 300 for WLASL300, 1000 for WLASL1000, 2000 for WLASL2000, 500 for SLR500, 100 for MLASL100, 200 for MLASL200, 500 for MLASL500, 1000 for MLASL1000, 1067 for NMFs-CSL
+  num_class: 100   # 100 for WLASL100, 300 for WLASL300, 1000 for WLASL1000, 2000 for WLASL2000, 500 for SLR500, 100 for MLASL100, 200 for MLASL200, 500 for MLASL500, 1000 for MLASL1000, 1067 for NMFs-CSL
   num_point: 27
   num_person: 1
   graph: graph.sign_27.Graph
@@ -52,11 +52,11 @@ device: [0]
 # start_epoch: 188
 keep_rate: 0.9
 only_train_epoch: 1
-batch_size: 24
+batch_size: 16
 test_batch_size: 24
-num_epoch: 250
+num_epoch: 10
 nesterov: True
-warm_up_epoch: 20
+warm_up_epoch: 5
 
 wandb: False
 wandb_project: SLGTformer First Run
