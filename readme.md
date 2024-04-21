@@ -13,7 +13,7 @@ ln -s path_to_your_WLASL2000/WLASL2000/ ./data/WLASL2000
 We provide the pretrained weight for our model on the WLASL2000 dataset to validate its performance in [./pretrained_models](./pretrained_models)
 
 ## Installation
-To install necessary packages, run this command. Note that this repo requires `cuda==12.1`
+To install necessary packages, run this command. 
 ```bash
 pip install -r requirements.txt
 ```
