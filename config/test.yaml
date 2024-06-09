@@ -1,7 +1,7 @@
-Experiment_name: slr500_bone_motion
+Experiment_name: wlasl2000_joint
 
 # feeder
-dataset: SLR500 # [WLASL100, WLASL300, WLASL1000, WLASL2000, SLR500, AUTSL, WLASL300_mediapipe, WLASL100_mediapipe]
+dataset: WLASL2000 # [WLASL100, WLASL300, WLASL1000, WLASL2000, SLR500, AUTSL, WLASL300_mediapipe, WLASL100_mediapipe]
 feeder: feeders.feeder.Feeder
 train_feeder_args:
   debug: False
@@ -13,23 +13,23 @@ train_feeder_args:
   random_mirror_p: 0.5
   is_vector: False
   lap_pe: False
-  bone_stream: True # True or False
-  motion_stream: True # True or False
+  bone_stream: False # True or False
+  motion_stream: False # True or False
 
 test_feeder_args:
   random_mirror: False
   normalization: True
   lap_pe: False
   debug: False
-  random_choose: True
+  random_choose: False
   window_size: 120  # 100 for AUTSL, 120 for others
-  bone_stream: True # True or False
-  motion_stream: True # True or False
+  bone_stream: False # True or False
+  motion_stream: False # True or False
 
 # model
 model: model.fstgan.Model
 model_args:
-  num_class: 500   # 100 for WLASL100, 300 for WLASL300, 1000 for WLASL1000, 2000 for WLASL2000, 226 for AUTSL, 500 for SLR500
+  num_class: 2000   # 100 for WLASL100, 300 for WLASL300, 1000 for WLASL1000, 2000 for WLASL2000, 226 for AUTSL, 500 for SLR500
   num_point: 27
   num_person: 1
   graph: graph.sign_27.Graph

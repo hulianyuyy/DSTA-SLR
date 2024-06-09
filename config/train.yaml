@@ -1,4 +1,4 @@
-Experiment_name: experiment
+Experiment_name: wlasl2000_joint
 
 # feeder
 dataset: WLASL2000 # [WLASL100, WLASL300, WLASL1000, WLASL2000, MLASL100, MLASL200, MLASL500, MLASL1000, SLR500, NMFs-CSL]
@@ -14,7 +14,7 @@ train_feeder_args:
   is_vector: False
   lap_pe: False
   bone_stream: False # True or False
-  motion_stream: True # True or False
+  motion_stream: False # True or False
 
 test_feeder_args:
   random_mirror: False
@@ -24,7 +24,7 @@ test_feeder_args:
   random_choose: False
   window_size: 120  
   bone_stream: False # True or False
-  motion_stream: True # True or False
+  motion_stream: False # True or False
 
 # model
 model: model.fstgan.Model
