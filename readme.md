@@ -36,6 +36,8 @@ python -u main.py --config config/test.yaml --device your_device_id
 
 To test your model with pretrained weights, you may modify the line 52 in [./config/test.yaml](./config/test.yaml) to path of your pretrained weight.
 
+Update: There seems to be an error that loading pretrained models doesn't give correct inference results. This doesn't affect the normal training procedure.
+
 ## Acknowledgements
 
 This code is based on [SAM-SLR-v2](https://github.com/jackyjsy/SAM-SLR-v2) and [SLGTformer](https://github.com/neilsong/SLGTformer). Many thanks for the authors for open sourcing their code.

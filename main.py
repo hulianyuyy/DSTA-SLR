@@ -229,6 +229,11 @@ class Processor:
         shutil.copy2(arg.config, self.arg.work_dir)
 
         self.global_step = 0
+        self.best_acc = 0
+        self.best_acc_5 = 0
+        self.best_accuracy_per_class = 0
+        self.best_accuracy_5_per_class = 0
+        self.best_epoch = 0
         self.load_model()
         # print(f'Parameters : {sum(p.numel() for p in self.model.parameters() if p.requires_grad)}')
         # flops, params = profile(self.model, inputs=(torch.randn(1, 3, 120, 27, 1).cuda(),))
@@ -237,11 +242,6 @@ class Processor:
         self.load_optimizer()
         self.load_data()
         self.lr = self.arg.base_lr
-        self.best_acc = 0
-        self.best_acc_5 = 0
-        self.best_accuracy_per_class = 0
-        self.best_accuracy_5_per_class = 0
-        self.best_epoch = 0
 
         if self.arg.wandb:
             wandb.init(
@@ -324,6 +324,18 @@ class Processor:
                     print("  " + d)
                 state.update(weights)
                 self.model.load_state_dict(state)
+            if 'best_acc' in ckpt.keys():
+                self.best_acc = ckpt['best_acc']
+            if 'best_acc_5' in ckpt.keys():
+                self.best_acc_5 = ckpt['best_acc_5']
+            if 'best_accuracy_per_class' in ckpt.keys():
+                self.best_accuracy_per_class = ckpt['best_accuracy_per_class']
+            if 'best_accuracy_5_per_class' in ckpt.keys():
+                self.best_accuracy_5_per_class = ckpt['best_accuracy_5_per_class']
+            if 'epoch' in ckpt.keys():
+                self.test_epoch = ckpt['epoch']
+            else:
+                self.test_epoch = 200
 
         if type(self.arg.device) is list:
             if len(self.arg.device) > 1:
@@ -509,6 +521,11 @@ class Processor:
                 "weights": weights,
                 "optimizer": self.optimizer.state_dict(),
                 "lr": self.lr,
+                "best_acc": self.best_acc,
+                "best_acc_5": self.best_acc_5,
+                "best_accuracy_per_class": self.best_accuracy_per_class,
+                "best_accuracy_5_per_class": self.best_accuracy_5_per_class,
+                "epoch": epoch,
             }
             torch.save(
                 save_dict, self.arg.model_saved_name + "epoch-" + str(epoch) + ".pt"
@@ -642,6 +659,11 @@ class Processor:
                         "weights": weights,
                         "optimizer": self.optimizer.state_dict(),
                         "lr": self.lr,
+                        "best_acc": self.best_acc,
+                        "best_acc_5": self.best_acc_5,
+                        "best_accuracy_per_class": self.best_accuracy_per_class,
+                        "best_accuracy_5_per_class": self.best_accuracy_5_per_class,
+                        "epoch": epoch,
                     }
                     torch.save(save_dict, self.arg.model_saved_name + "best_model.pt")
 
@@ -735,8 +757,14 @@ class Processor:
 
         elif self.arg.phase == "test":
             if not self.arg.test_feeder_args["debug"]:
-                wf = self.arg.model_saved_name + "_wrong.txt"
-                rf = self.arg.model_saved_name + "_right.txt"
+                if os.path.exists(self.arg.model_saved_name + "_wrong.txt"):
+                    wf = self.arg.model_saved_name + "_wrong.txt"
+                else:
+                    wf = None
+                if os.path.exists(self.arg.model_saved_name + "_right.txt"):
+                    rf = self.arg.model_saved_name + "_right.txt"
+                else:
+                    rf = None
             else:
                 wf = rf = None
             if self.arg.weights is None:
@@ -746,7 +774,7 @@ class Processor:
             self.print_log("Model:   {}.".format(self.arg.model))
             self.print_log("Weights: {}.".format(self.arg.weights))
             self.eval(
-                epoch=self.arg.start_epoch,
+                epoch=self.test_epoch,
                 save_score=self.arg.save_score,
                 loader_name=["test"],
                 wrong_file=wf,
