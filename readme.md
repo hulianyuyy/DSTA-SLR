@@ -38,6 +38,11 @@ To test your model with pretrained weights, you may modify the line 52 in [./con
 
 Update: There seems to be an error that loading pretrained models doesn't give correct inference results. This doesn't affect the normal training procedure.
 
+### Ensembling 
+To obtain the final reults reported in the paper by perform multi-stream fusing based on the joint, bone, joint-motion and bone-motion streams, you should first set the `bone_stream` and `motion_stream` in line 16 & 17 and line 26 & 27 in the `./config/train.yaml` as [True, True], [True, False], [False, True] and [False, False], respectively, to run four times obtain the results of different streams.
+
+To perform multi-stream fusing, modify the path to your result file in the [./ensemble/ensemble.py](./ensemble/ensemble.py) in lines 12-18 for the four streams, and select the fusing weights from line 21-30 according to your dataset. The `pkl` file is located in your `work_dir`. Then conduct `python ./ensemble/ensemble.py`.
+
 ## Acknowledgements
 
 This code is based on [SAM-SLR-v2](https://github.com/jackyjsy/SAM-SLR-v2) and [SLGTformer](https://github.com/neilsong/SLGTformer). Many thanks for the authors for open sourcing their code.
