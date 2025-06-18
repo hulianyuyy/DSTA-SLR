@@ -2,7 +2,7 @@
 This work focuses on skeleton-aware sign language recognition (SLR) which receives a series of skeleton points to classify the classes of sign language. Compared to RGB-based inputs, it consumes <1/3 computations and achieve >2× inference speed. This work proposes a dynamic spatial-temporal aggregation network for skeleton-aware sign language recognition. It achieves new state-of-the-art performance on four datasets including NMFs-CSL, SLR500, MSASL and WLASL and outperforms previous methods by a large margin.
 
 ## Data preparation
-The preprocessed skeleton data for NMFs-CSL, SLR500, MSASL and WLASL datasets are provided [here](https://mega.nz/folder/JytAARrA#76Ug-Khu-8Eskmrw1HhMCQ). Please be sure to follow their rules and agreements when using the preprocessed data.
+The preprocessed skeleton data for NMFs-CSL, SLR500, MSASL and WLASL datasets are provided [here](https://mega.nz/folder/EvkEzIAC#gq_nWLbbWoj9WVnJGxnGaA). Please be sure to follow their rules and agreements when using the preprocessed data.
 
 For datasets (WLASL100, WLASL300, WLASL1000, WLASL2000, MLASL100, MLASL200, MLASL500, MLASL1000, SLR500, NMFs-CSL) used to train or test our model, first create a soft link. For example, for WLASL2000:
 ```
